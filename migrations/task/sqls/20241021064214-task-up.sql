@@ -182,14 +182,14 @@ SET
 join_at ='2024-11-25 14:01:59',
 status ='上課中'
 WHERE user_id =(SELECT id FROM "USER" WHERE email='wXlTq@hexschooltest.io')
+AND course_id =(SELECT id FROM "COURSE" WHERE user_id=(SELECT id FROM "USER" WHERE email='lee2000@hexschooltest.io'))
 AND status ='即將授課';
 -- 5-6. 查詢：計算用戶王小明的購買堂數，顯示須包含以下欄位： user_id , total。 (需使用到 SUM 函式與 Group By)
-SELECT cpu.user_id,SUM(credit_amount) AS total FROM "CREDIT_PURCHASE" AS cpu
-INNER JOIN "CREDIT_PACKAGE" AS cpa ON cpu.credit_package_id =cpa.id 
+SELECT cpu.user_id,SUM(cpu.purchased_credits) AS total FROM "CREDIT_PURCHASE" AS cpu 
 WHERE cpu.user_id=(SELECT id FROM "USER" WHERE email='wXlTq@hexschooltest.io')
 GROUP BY cpu.user_id ;
 -- 5-7. 查詢：計算用戶王小明的已使用堂數，顯示須包含以下欄位： user_id , total。 (需使用到 Count 函式與 Group By)
-SELECT user_id,count(*) FROM "COURSE_BOOKING"
+SELECT user_id,count(*) AS total FROM "COURSE_BOOKING"
 WHERE user_id =(SELECT id FROM "USER" WHERE email='wXlTq@hexschooltest.io')
 AND status NOT IN ('課程已取消')
 GROUP BY user_id;
@@ -199,16 +199,15 @@ GROUP BY user_id;
     -- from ( 用戶王小明的購買堂數 ) as "CREDIT_PURCHASE"
     -- inner join ( 用戶王小明的已使用堂數) as "COURSE_BOOKING"
     -- on "COURSE_BOOKING".user_id = "CREDIT_PURCHASE".user_id;
-SELECT cpu.user_id,
-(SUM(credit_amount)- 
-(SELECT count(*) FROM "COURSE_BOOKING" AS cb
+SELECT cp.user_id,
+(SUM(cp.purchased_credits)- 
+(SELECT count(*) FROM "COURSE_BOOKING"
 WHERE user_id =(SELECT id FROM "USER" WHERE email='wXlTq@hexschooltest.io')
-AND status NOT IN ('課程已取消'))) 
-AS remaoning_credit 
-FROM "CREDIT_PURCHASE" AS cpu
-INNER JOIN "CREDIT_PACKAGE" AS cpa ON cpu.credit_package_id =cpa.id 
+AND status !=('課程已取消'))) 
+AS remaining_credit 
+FROM "CREDIT_PURCHASE" AS cp
 WHERE user_id=(SELECT id FROM "USER" WHERE email='wXlTq@hexschooltest.io')
-GROUP BY cpu.user_id ;
+GROUP BY cp.user_id ;
 
 -- ████████  █████   █     ███  
 --   █ █   ██    █  █     █     
