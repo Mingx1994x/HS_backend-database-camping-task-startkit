@@ -221,15 +221,34 @@ GROUP BY cpu.user_id ;
 -- 6. 後台報表
 -- 6-1 查詢：查詢專長為重訓的教練，並按經驗年數排序，由資深到資淺（需使用 inner join 與 order by 語法)
 -- 顯示須包含以下欄位： 教練名稱 , 經驗年數, 專長名稱
-
+SELECT 
+u.name AS 教練名稱,
+c.experience_years AS 經驗年數,
+s.name AS 專長名稱
+FROM "COACH" AS c
+INNER JOIN "USER" AS u ON u.id=c.user_id 
+INNER JOIN "COACH_LINK_SKILL" AS cls ON c.id =cls.coach_id 
+INNER JOIN "SKILL" AS s ON cls.skill_id=s.id 
+WHERE s.name='重訓'
+ORDER BY c.experience_years DESC ;
 -- 6-2 查詢：查詢每種專長的教練數量，並只列出教練數量最多的專長（需使用 group by, inner join 與 order by 與 limit 語法）
 -- 顯示須包含以下欄位： 專長名稱, coach_total
-
+SELECT s.name AS 專長名稱 ,count(*) AS coach_total FROM "COACH_LINK_SKILL" AS cls 
+INNER JOIN "SKILL" AS s ON cls.skill_id =s.id 
+GROUP BY s.name 
+ORDER BY count(*) DESC 
+LIMIT 1;
 -- 6-3. 查詢：計算 11 月份組合包方案的銷售數量
 -- 顯示須包含以下欄位： 組合包方案名稱, 銷售數量
-
+SELECT cpa.name AS 組合包方案名稱,count(cpu.purchased_credits) AS 銷售數量 FROM "CREDIT_PURCHASE" AS cpu
+INNER JOIN "CREDIT_PACKAGE" AS cpa ON cpa.id=cpu.credit_package_id 
+WHERE cpu.created_at BETWEEN '2024-11-01 00:00:00' AND '2024-12-30 23:59:59'
+GROUP BY cpa.name;
 -- 6-4. 查詢：計算 11 月份總營收（使用 purchase_at 欄位統計）
 -- 顯示須包含以下欄位： 總營收
-
+SELECT SUM(price_paid) AS 總營收 FROM "CREDIT_PURCHASE" AS cpu
+WHERE cpu.purchase_at BETWEEN '2024-11-01 00:00:00' AND '2024-12-30 23:59:59';
 -- 6-5. 查詢：計算 11 月份有預約課程的會員人數（需使用 Distinct，並用 created_at 和 status 欄位統計）
 -- 顯示須包含以下欄位： 預約會員人數
+SELECT count(DISTINCT user_id) AS 預約會員人數 FROM "COURSE_BOOKING" 
+WHERE booking_at BETWEEN '2024-11-01 00:00:00' AND '2024-11-30 23:59:59';
